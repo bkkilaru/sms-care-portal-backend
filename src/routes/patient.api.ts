@@ -111,7 +111,6 @@ router.post('/add', auth, async (req, res) => {
   res.status(200).json({
     success: true,
   });
-  return;
 });
 
 router.put('/increaseResponseCount/:id', auth, (req, res) => {
@@ -204,6 +203,30 @@ router.post('/status', auth, (req, res) => {
       return res.status(200).json('Patiet Status Changed!');
     })
     .catch((err) => errorHandler(res, err.message));
+});
+
+router.post('/updateOutreach', auth, async (req, res) => {
+  const { patientID } = req.body;
+  const { outreach } = req.body;
+  const oldPatient = await Patient.findById(new ObjectId(patientID));
+  if (!oldPatient?.outreach.outreach && outreach.outreach) {
+    outreach.lastMessageSent = '0';
+    outreach.lastDate = new Date();
+  }
+  try {
+    const patient = await Patient.findByIdAndUpdate(
+      new ObjectId(patientID),
+      {
+        outreach,
+      },
+      { new: true },
+    );
+    return res.status(200).json(patient);
+  } catch (e) {
+    const err = e as Error;
+    errorHandler(res, err?.message);
+  }
+  return res.status(200).json('Patient could not be updated');
 });
 
 export default router;
