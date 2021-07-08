@@ -4,6 +4,7 @@ import { Patient, PatientForPhoneNumber } from '../models/patient.model';
 import auth from '../middleware/auth';
 import errorHandler from './error';
 import { Message } from '../models/message.model';
+import outreachMessage from './outreach/outreachResponses';
 
 const { ObjectId } = require('mongoose').Types;
 
@@ -87,12 +88,30 @@ router.post('/add', auth, async (req, res) => {
     coachName: req.body.coachName,
     enabled: req.body.isEnabled,
     prefTime: hours * 60 + mins,
+    clinic: req.body.clinic,
+    outreach: {
+      outreach: req.body.outreach.outreach,
+      complete: req.body.outreach.complete,
+      yes: req.body.outreach.yes,
+      lastMessageSent: req.body.outreach.lastMessageSent,
+      lastDate: req.body.outreach.lastDate,
+    },
   });
-  return newPatient.save().then(() => {
-    res.status(200).json({
-      success: true,
-    });
+  await newPatient.save();
+
+  const patient = await PatientForPhoneNumber(req.body.phoneNumber);
+  if (
+    patient?.outreach.outreach &&
+    patient?.enabled &&
+    !patient?.outreach.complete
+  ) {
+    await outreachMessage(patient);
+  }
+
+  res.status(200).json({
+    success: true,
   });
+  return;
 });
 
 router.put('/increaseResponseCount/:id', auth, (req, res) => {

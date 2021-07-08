@@ -12,7 +12,7 @@ import { Message } from '../models/message.model';
 import patientRouter from './patient.api';
 
 const patientApp = express();
-
+patientApp.use(express.json());
 patientApp.use(express.urlencoded({ extended: false }));
 patientApp.use('/', patientRouter);
 
@@ -68,6 +68,44 @@ if (process.env.NODE_ENV === 'development') {
       expect(messages.length).toBe(1);
       expect(messages[0]?.sender).toBe('COACH');
       expect(messages[0]?.isCoachingMessage).toBe(true);
+    });
+    it('Sends an outreach message when a patient is created and outreach is turned on', async () => {
+      const res = await request(patientApp)
+        .post('/add')
+        .set('Authorization', `Bearer ${tokenObject.token[0]}`)
+        .send({
+          firstName: 'outreach test',
+          lastName: 'test',
+          language: 'english',
+          phoneNumber: '0123456789',
+          coachId: '60ac2a4b01d7157738425700',
+          isEnabled: true,
+          msgTime: '13:33',
+          coachName: 'Test Testingson',
+          clinic: 'Call me coahc',
+          outreach: {
+            outreach: true,
+            yes: false,
+            complete: false,
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Accept', 'application/json');
+      expect(res.statusCode).toBe(200);
+      const messages = await Message.find();
+      expect(messages[0].message).toBe(
+        'Hi outreach test, your team at Call me coahc 🏥 referred you to join the Healthy At Home Program. This is Test Testingson and I can tell you more.',
+      );
+      expect(messages[3].message).toBe(
+        'Want to join for FREE? Respond YES to get set up with your diabetes coach or MORE to learn more.',
+      );
+      expect(messages.length).toBe(4);
+      expect(messages[2].isCoachingMessage).toBeTruthy();
+      const updatedPatient = await Patient.findOne();
+      expect(updatedPatient?.outreach.lastMessageSent).toBe('1');
+      expect(updatedPatient?.outreach.outreach).toBe(true);
+      expect(updatedPatient?.outreach.yes).toBe(false);
+      expect(updatedPatient?.outreach.complete).toBe(false);
     });
   });
 } else {
