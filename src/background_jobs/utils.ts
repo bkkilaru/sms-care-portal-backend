@@ -1,10 +1,10 @@
-/* eslint-disable no-console */
 import { ObjectId } from 'mongodb';
 import { Message } from '../models/message.model';
 import { MessageTemplate } from '../models/messageTemplate.model';
 import { IPatient, Patient } from '../models/patient.model';
 import { Outcome, IOutcome } from '../models/outcome.model';
 import { Schedule } from '../models/schedule.model';
+import outreachMessage from '../routes/outreach/outreachResponses';
 
 interface IweekRecords {
   [char: string]: number;
@@ -298,4 +298,22 @@ export const weeklyReport = async () => {
       sendOutcomesToPatients();
     }
   }
+};
+
+export const outreachNoResponseSendNextMessage = async () => {
+  const patients = await Patient.find({
+    'outreach.outreach': true,
+    enabled: true,
+    'outreach.complete': false,
+    'outreach.yes': false,
+  });
+  const yesterday = new Date();
+  yesterday.setHours(yesterday.getHours() - 23);
+  const patientPromises = patients.map(async (patient) => {
+    if (patient.outreach.lastDate < yesterday) {
+      await outreachMessage(patient);
+    }
+  });
+
+  await Promise.all(patientPromises);
 };
