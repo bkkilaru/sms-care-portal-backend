@@ -229,4 +229,27 @@ router.post('/updateOutreach', auth, async (req, res) => {
   return res.status(200).json('Patient could not be updated');
 });
 
+router.put('/addSchedule', auth, async (req, res) => {
+  const { patientID } = req.body;
+  const { newSchedule } = req.body;
+  const oldPatient = await Patient.findById(new ObjectId(patientID));
+  if (new Date(newSchedule).getTime()) {
+    oldPatient?.schedules.push(newSchedule);
+    try {
+      await Patient.findByIdAndUpdate(new ObjectId(patientID), {
+        schedules: oldPatient?.schedules,
+      });
+    } catch (e) {
+      if (typeof e === 'string') {
+        errorHandler(res, e);
+      } else if (e instanceof Error) {
+        errorHandler(res, e.message);
+      }
+    }
+    return res.status(200).json('Patiet Schedules updated!');
+  }
+
+  return errorHandler(res, '');
+});
+
 export default router;
