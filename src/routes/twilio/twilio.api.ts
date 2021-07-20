@@ -2,12 +2,17 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import twilio from 'twilio';
 import auth from '../../middleware/auth';
-import { Patient, PatientForPhoneNumber } from '../../models/patient.model';
+import {
+  Patient,
+  IPatient,
+  PatientForPhoneNumber,
+} from '../../models/patient.model';
 import { parseInboundPatientMessage } from '../../domain/message_parsing';
 import { responseForParsedMessage } from '../../domain/glucose_reading_responses';
 import { Outcome } from '../../models/outcome.model';
 import { Message } from '../../models/message.model';
 import errorHandler from '../error';
+import sendOutreachMessages from '../outreach/outreachMessagesLogic';
 
 const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -84,6 +89,19 @@ export const createNewOutcome = async ({
   }
 };
 
+export const parseSendOutreachMessages = async (
+  message: string,
+  patient: IPatient,
+) => {
+  if (message.includes('YES')) {
+    await sendOutreachMessages({ patient, receivedYESMessage: true });
+  }
+
+  if (message.includes('MORE')) {
+    await sendOutreachMessages({ patient });
+  }
+};
+
 export const manageIncomingMessages = async (
   req: any,
   res: any,
@@ -110,6 +128,9 @@ export const manageIncomingMessages = async (
   });
 
   if (isCoachingMessage) {
+    if (patient.outreach.enabled && !patient.outreach.patientRequestedContact) {
+      await parseSendOutreachMessages(inboundMessage, patient);
+    }
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(incomingMessage?.sent.toString());
     return;

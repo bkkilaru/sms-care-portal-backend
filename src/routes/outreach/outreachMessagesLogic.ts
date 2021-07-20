@@ -50,29 +50,28 @@ const sendOutreachMessages = async ({
   patient: IPatient;
   receivedYESMessage?: boolean;
 }) => {
+  const outreachStage = receivedYESMessage
+    ? 'patientRequestedContact'
+    : patient.outreach.lastTemplateSent;
+
   const response = outreachMessageTextsBuilder({
     coachName: patient?.coachName,
     patientName: `${patient?.firstName} ${patient?.lastName}`,
     clinicName: patient?.clinic,
-    outreachStage: receivedYESMessage
-      ? 'patientRequestedContact'
-      : patient.outreach.lastTemplateSent,
+    outreachStage,
     isSpanishMessage: cleanResponseLanguage(patient.language) === 'spanish',
   });
 
   await createMessagesFromArray(response, patient);
 
-  const lastTemplateSent = getNextTemplateToSend(
-    patient.outreach.lastTemplateSent,
-  );
+  const lastTemplateSent = getNextTemplateToSend(outreachStage);
 
   await Patient.findOneAndUpdate(
     { _id: patient._id },
     {
       outreach: {
         enabled: patient.enabled,
-        patientRequestedContact:
-          patient.outreach.lastTemplateSent === 'patientRequestedContact',
+        patientRequestedContact: outreachStage === 'patientRequestedContact',
         complete: patient.outreach.complete,
         lastTemplateSent,
         lastTemplateSentOn: new Date(),
