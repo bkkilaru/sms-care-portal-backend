@@ -3,12 +3,13 @@ import bodyParser from 'body-parser';
 import twilio from 'twilio';
 import { ObjectId } from 'mongodb';
 import auth from '../../middleware/auth';
-import { PatientForPhoneNumber } from '../../models/patient.model';
+import { IPatient, PatientForPhoneNumber } from '../../models/patient.model';
 import { parseInboundPatientMessage } from '../../domain/message_parsing';
 import { responseForParsedMessage } from '../../domain/glucose_reading_responses';
 import { Outcome } from '../../models/outcome.model';
 import { Message } from '../../models/message.model';
 import errorHandler from '../error';
+import outreachMessage from '../outreach/outreachResponses';
 
 const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -85,6 +86,19 @@ export const createNewOutcome = async ({
   }
 };
 
+export const parseOutreachMessage = async (
+  message: string,
+  patient: IPatient,
+) => {
+  if (message.includes('YES')) {
+    await outreachMessage(patient, true);
+  }
+
+  if (message.includes('MORE')) {
+    await outreachMessage(patient);
+  }
+};
+
 export const manageIncomingMessages = async (
   req: any,
   res: any,
@@ -111,6 +125,9 @@ export const manageIncomingMessages = async (
   });
 
   if (isCoachingMessage) {
+    if (patient.outreach.enabled && !patient.outreach.yes) {
+      await parseOutreachMessage(inboundMessage, patient);
+    }
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(incomingMessage?.sent.toString());
     return;
