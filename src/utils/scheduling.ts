@@ -32,14 +32,27 @@ export const getTwilioNumber = (isCoachingMessage: boolean) => {
   return TWILIO_FROM_NUMBER;
 };
 
+interface ITwilioData {
+  body: string;
+  from: string;
+  to: string;
+  mediaUrl?: string[];
+}
+
 // sends message, marks it as sent
 const sendMessage = async (msg: IMessage) => {
   const twilioNumber = getTwilioNumber(msg.isCoachingMessage);
-  twilio.messages.create({
+
+  const twilioData = <ITwilioData>{
     body: msg.message,
     from: twilioNumber,
     to: msg.phoneNumber,
-  });
+  };
+  if (msg?.image?.publicURLs.length > 0) {
+    twilioData.mediaUrl = msg.image.publicURLs;
+  }
+
+  twilio.messages.create(twilioData);
 
   await Message.findOneAndUpdate(
     { _id: msg.id },
