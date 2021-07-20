@@ -139,6 +139,53 @@ if (process.env.NODE_ENV === 'development') {
       expect(messages.length).toBe(0);
     });
   });
+
+  describe('Twilio api Sends outreach messages if it receives YES or MORE', () => {
+    it('sends YES messages if the patient says YES', async () => {
+      await createPatient('1112223334', {
+        outreach: true,
+        yes: false,
+        complete: false,
+        lastMessageSent: '0',
+        lastDate: new Date(),
+      });
+      const patient = await Patient.findOne({ phoneNumber: '1112223334' });
+      const res = await request(twilioApp)
+        .post('/receive')
+        .type('form')
+        .send({
+          Body: 'YES',
+          From: '001112223334',
+          patientID: `${patient?._id}`,
+        });
+      expect(res.statusCode).toBe(200);
+      const Messages = await Message.find();
+      expect(Messages.length).toBe(2);
+      expect(Messages[1].message.includes('By joining,')).toBeTruthy();
+    });
+    it('sends MORE messages if the patient says MORE', async () => {
+      await createPatient('1112223334', {
+        outreach: true,
+        yes: false,
+        complete: false,
+        lastMessageSent: '1',
+        lastDate: new Date(),
+      });
+      const patient = await Patient.findOne({ phoneNumber: '1112223334' });
+      const res = await request(twilioApp)
+        .post('/receive')
+        .type('form')
+        .send({
+          Body: 'MORE',
+          From: '001112223334',
+          patientID: `${patient?._id}`,
+        });
+      expect(res.statusCode).toBe(200);
+      const Messages = await Message.find();
+      expect(Messages.length).toBe(6);
+      expect(Messages[1].message.includes('Great! We’ve helped')).toBeTruthy();
+    });
+  });
 } else {
   it('is not development', () => {
     expect(1).toBeTruthy();
