@@ -28,6 +28,7 @@ interface IPatient extends mongoose.Document {
     lastMessageSent: string;
     lastDate: Date;
   };
+  schedules: any[];
 }
 
 const PatientSchema = new Schema({
@@ -55,6 +56,7 @@ const PatientSchema = new Schema({
     lastMessageSent: { type: String, required: true, default: '0' },
     lastDate: { type: Date, required: true, default: new Date() },
   },
+  schedules: { type: Array, required: false, default: [] }
 });
 
 const Patient = mongoose.model<IPatient>('Patient', PatientSchema);
