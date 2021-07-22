@@ -28,6 +28,8 @@ if (process.env.NODE_ENV === 'development') {
 
   describe('Twilio api integration properly handles messages', () => {
     it('sendMessage route saves message with sender COACH and coaching number ', async () => {
+      await createPatient('0123456789');
+      const patient = await Patient.findOne({ phoneNumber: '0123456789' });
       const res = await request(twilioApp)
         .post('/sendMessage')
         .set('Authorization', `Bearer ${tokenObject.token[0]}`)
@@ -35,7 +37,7 @@ if (process.env.NODE_ENV === 'development') {
         .send({
           message: 'Test message',
           to: 'test number',
-          patientID: '60aebf123fbd20eba237244e',
+          patientID: `${patient?._id}`,
         });
       expect(res.statusCode).toBe(200);
       const message = await Message.findOne();

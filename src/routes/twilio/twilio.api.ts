@@ -1,9 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import twilio from 'twilio';
-import { ObjectId } from 'mongodb';
 import auth from '../../middleware/auth';
-import { PatientForPhoneNumber } from '../../models/patient.model';
+import { Patient, PatientForPhoneNumber } from '../../models/patient.model';
 import { parseInboundPatientMessage } from '../../domain/message_parsing';
 import { responseForParsedMessage } from '../../domain/glucose_reading_responses';
 import { Outcome } from '../../models/outcome.model';
@@ -144,14 +143,20 @@ export const manageIncomingMessages = async (
 };
 
 router.post('/sendMessage', auth, async (req, res) => {
-  const recept = req.body.to;
-  const patientID = new ObjectId(req.body.patientID);
+  const patient = await Patient.findById(req.body.patientID);
   const date = new Date();
   const content = req.body.message;
+  if (!patient) {
+    res.status(404).send({
+      msg: 'Patient not found',
+    });
+    return;
+  }
+
   const outgoingMessage = new Message({
     sent: false,
-    phoneNumber: recept,
-    patientID,
+    phoneNumber: patient?.phoneNumber,
+    patientID: patient?._id,
     message: content,
     sender: 'COACH',
     date,
