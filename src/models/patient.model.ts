@@ -20,6 +20,14 @@ interface IPatient extends mongoose.Document {
     },
   ];
   enabled: boolean;
+  clinic: string;
+  outreach: {
+    enabled: boolean;
+    patientRequestedContact: boolean;
+    complete: boolean;
+    lastTemplateSent: string;
+    lastTemplateSentOn: Date;
+  };
 }
 
 const PatientSchema = new Schema({
@@ -39,6 +47,14 @@ const PatientSchema = new Schema({
     },
   ],
   enabled: { type: Boolean, required: true },
+  clinic: { type: String, required: true, default: 'CoachMe' },
+  outreach: {
+    enabled: { type: Boolean, required: true, default: false },
+    patientRequestedContact: { type: Boolean, required: true, default: false },
+    complete: { type: Boolean, required: true, default: false },
+    lastTemplateSent: { type: String, required: true, default: '0' },
+    lastTemplateSentOn: { type: Date, required: true, default: new Date() },
+  },
 });
 
 const Patient = mongoose.model<IPatient>('Patient', PatientSchema);
