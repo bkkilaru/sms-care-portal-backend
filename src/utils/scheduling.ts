@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { Twilio } from 'twilio';
 import { Message, IMessage } from '../models/message.model';
 import {
   TWILIO_ACCOUNT_SID,
@@ -8,7 +9,7 @@ import {
 } from './config';
 import { Patient } from '../models/patient.model';
 
-const twilio = require('twilio')(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+const twilioClient = new Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
 // time in seconds between each run of scheduler
 const schedulingInterval = 5;
@@ -32,13 +33,14 @@ export const getTwilioNumber = (isCoachingMessage: boolean) => {
   return TWILIO_FROM_NUMBER;
 };
 
-// sends message, marks it as sent
 const sendMessage = async (msg: IMessage) => {
   const twilioNumber = getTwilioNumber(msg.isCoachingMessage);
-  twilio.messages.create({
+
+  twilioClient.messages.create({
     body: msg.message,
     from: twilioNumber,
     to: msg.phoneNumber,
+    mediaUrl: msg.publicImagesURLs,
   });
 
   await Message.findOneAndUpdate(

@@ -15,6 +15,7 @@ interface IMessage extends mongoose.Document {
   date: Date;
   sent: boolean;
   isCoachingMessage: boolean;
+  publicImagesURLs?: string[];
 }
 
 const MessageSchema = new Schema({
@@ -29,6 +30,7 @@ const MessageSchema = new Schema({
   date: { type: mongoose.Schema.Types.Date, required: true },
   sent: { type: mongoose.Schema.Types.Boolean, default: false },
   isCoachingMessage: { type: Boolean, required: true, default: false },
+  publicImagesURLs: { type: Array, required: false },
 });
 
 const Message = mongoose.model<IMessage>('Message', MessageSchema);
