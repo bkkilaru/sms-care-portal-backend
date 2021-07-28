@@ -80,7 +80,10 @@ export const waitJest = async (waitTime: number) => {
   jest.useFakeTimers();
 };
 
-export const createPatient = async (phoneNumber: string) => {
+export const createPatient = async (
+  phoneNumber: string,
+  outreach: object = {},
+) => {
   const patient = new Patient({
     firstName: 'jest',
     lastName: 'jester',
@@ -93,6 +96,7 @@ export const createPatient = async (phoneNumber: string) => {
     responseCount: 0,
     reports: [],
     enabled: true,
+    outreach,
   });
   await patient.save();
 };

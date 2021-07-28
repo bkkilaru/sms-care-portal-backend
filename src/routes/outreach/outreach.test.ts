@@ -6,7 +6,7 @@ describe('Outreach responses tests', () => {
       coachName: 'Michael',
       patientName: 'Bryant',
       clinicName: 'NBA',
-      outreachStage: 'first',
+      outreachStage: 'zero',
       isSpanishMessage: false,
     });
 
@@ -14,7 +14,7 @@ describe('Outreach responses tests', () => {
     expect(firstResponse.length).toBe(4);
 
     const secondResponse = outreachMessageTextsBuilder({
-      outreachStage: 'second',
+      outreachStage: 'first',
       isSpanishMessage: false,
     });
 
@@ -22,7 +22,7 @@ describe('Outreach responses tests', () => {
     expect(secondResponse.length).toBe(5);
 
     const thirdResponse = outreachMessageTextsBuilder({
-      outreachStage: 'third',
+      outreachStage: 'second',
       isSpanishMessage: false,
     });
 

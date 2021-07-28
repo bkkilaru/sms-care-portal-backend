@@ -69,7 +69,7 @@ const scheduleMessages = async (interval: number) => {
       $lt: intervalEnd,
     },
     sent: false,
-  });
+  }).sort({ date: 1 });
 
   messages.forEach((message: any) => {
     sendMessage(message);

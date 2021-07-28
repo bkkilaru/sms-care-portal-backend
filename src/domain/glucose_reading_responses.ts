@@ -1,8 +1,7 @@
 import { capitalize, sample } from 'lodash';
 import { MessageTemplate } from '../models/messageTemplate.model';
 import { ParsedMessage } from './message_parsing';
-
-type SupportedLanguage = 'english' | 'spanish';
+import cleanResponseLanguage from '../utils/cleanResponseLanguage';
 
 export const DefaultResponses = {
   catchall: {
@@ -59,24 +58,11 @@ export const DefaultResponses = {
   },
 };
 
-const responseLanguage = (language?: string): SupportedLanguage => {
-  if (!language) {
-    return 'english';
-  }
-  const cleanLanguage = language.toLowerCase();
-
-  if (cleanLanguage === 'english' || cleanLanguage === 'spanish') {
-    return cleanLanguage;
-  }
-
-  return 'english';
-};
-
 export const responseForParsedMessage = async (
   parsedMessage: ParsedMessage,
   language?: string,
 ): Promise<string> => {
-  const lang = responseLanguage(language);
+  const lang = cleanResponseLanguage(language);
 
   if (parsedMessage.error) {
     return DefaultResponses[parsedMessage.error][lang];

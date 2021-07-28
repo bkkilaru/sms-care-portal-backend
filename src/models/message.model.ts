@@ -6,7 +6,7 @@ interface IMessage extends mongoose.Document {
   _id: string;
   phoneNumber: string;
   patientID: number;
-  sender: string;
+  sender: 'COACH' | 'BOT' | 'OUTREACH';
   message: string;
   image: {
     data: Buffer;

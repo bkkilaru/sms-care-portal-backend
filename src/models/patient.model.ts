@@ -25,7 +25,12 @@ interface IPatient extends mongoose.Document {
     enabled: boolean;
     patientRequestedContact: boolean;
     complete: boolean;
-    lastTemplateSent: string;
+    lastTemplateSent:
+    | 'zero'
+    | 'first'
+    | 'second'
+    | 'patientRequestedContact'
+    | 'patientContactMessageSent';
     lastTemplateSentOn: Date;
   };
 }
@@ -52,7 +57,7 @@ const PatientSchema = new Schema({
     enabled: { type: Boolean, required: true, default: false },
     patientRequestedContact: { type: Boolean, required: true, default: false },
     complete: { type: Boolean, required: true, default: false },
-    lastTemplateSent: { type: String, required: true, default: '0' },
+    lastTemplateSent: { type: String, required: true, default: 'zero' },
     lastTemplateSentOn: { type: Date, required: true, default: new Date() },
   },
 });
