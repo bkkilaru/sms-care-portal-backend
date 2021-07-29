@@ -68,7 +68,9 @@ export const getTestToken = async (tokenObj: any, done: any) => {
       email: 'jest@test.net',
       password: 'jest',
     });
+    const coach = await Coach.findOne();
     tokenObj.token.push(resp.body.accessToken);
+    tokenObj.token.push(coach?._id);
     done();
   });
 };

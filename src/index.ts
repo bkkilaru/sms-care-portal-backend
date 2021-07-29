@@ -10,6 +10,7 @@ import messageRouter from './routes/messages/messages.api';
 import coachAuthRouter from './routes/coach.auth';
 import coachApiRouter from './routes/coach.api';
 import twilioRouter from './routes/twilio/twilio.api';
+import appointmentRouter from './routes/appointment.api';
 import messageTemplateRouter from './routes/messageTemplate.api';
 import RequireHttps from './middleware/require_https';
 
@@ -32,6 +33,7 @@ app.use('/api/coaches', coachApiRouter);
 app.use('/api/messages', messageRouter);
 app.use('/api/twilio', twilioRouter);
 app.use('/api/messageTemplate', messageTemplateRouter);
+app.use('/api/appointments', appointmentRouter);
 
 const server = app.listen(app.get('port'), () => {
   console.log(`Listening on port ${app.get('port')} 🚀`);
