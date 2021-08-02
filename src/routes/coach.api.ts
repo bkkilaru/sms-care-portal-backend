@@ -16,12 +16,12 @@ router.get('/getPatients', auth, (req, res) => {
 
 router.get('/appointments', auth, async (req: CoachMeRequest, res) => {
   const { userId } = req;
-  const today = new Date();
-  today.setMinutes(today.getMinutes() + 20);
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 20);
   const appointments = await Appointment.find({
     appointmentCoachID: userId,
     scheduledFor: {
-      $gte: today,
+      $gte: now,
     },
   }).sort({
     scheduledFor: 1,
