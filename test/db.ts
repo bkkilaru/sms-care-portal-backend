@@ -11,6 +11,7 @@ import { IPatient, Patient } from '../src/models/patient.model';
 import { Message } from '../src/models/message.model';
 import { Outcome } from '../src/models/outcome.model';
 import { MessageTemplate } from '../src/models/messageTemplate.model';
+import { Appointment } from '../src/models/appointment.model';
 
 const authApp = express();
 
@@ -68,7 +69,10 @@ export const getTestToken = async (tokenObj: any, done: any) => {
       email: 'jest@test.net',
       password: 'jest',
     });
+
+    const coach = await Coach.findOne();
     tokenObj.token.push(resp.body.accessToken);
+    tokenObj.token.push(coach?._id);
     done();
   });
 };
@@ -144,4 +148,30 @@ export const createMessageTemplate = async () => {
     type: 'Initial',
   });
   await newMessageTemplate.save();
+};
+
+export const createAppointment = async ({
+  patientID,
+  appointmentCoachID,
+  scheduledByCoachID,
+  cancelledOn,
+  missed,
+  scheduledFor,
+}: {
+  patientID: string;
+  appointmentCoachID?: string;
+  scheduledByCoachID?: string;
+  cancelledOn?: Date;
+  missed?: boolean;
+  scheduledFor: Date;
+}) => {
+  const newAppointment = new Appointment({
+    patientID,
+    appointmentCoachID: appointmentCoachID || new ObjectId(1),
+    scheduledByCoachID: scheduledByCoachID || new ObjectId(2),
+    cancelledOn,
+    missed,
+    scheduledFor,
+  });
+  await newAppointment.save();
 };
