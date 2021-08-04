@@ -42,6 +42,39 @@ export const dailyMidnightMessages = async () => {
   });
 };
 
+export const nudgeMessages = async () => {
+  console.log('Running nudge messages');
+  const patients = await Patient.find();
+  const MessageTemplates = await MessageTemplate.find({ type: 'Nudge' });
+  patients.forEach(async (patient) => {
+    if (patient.enabled) {
+      const messages = MessageTemplates.filter(
+        (template) =>
+          template.language.toLowerCase() === patient.language.toLowerCase(),
+      );
+      if (messages.length < 1) {
+        console.log(
+          'Unable to find message appropriate for member = ',
+          patient._id,
+        );
+        return;
+      }
+      const randomVal = Math.floor(Math.random() * messages.length);
+      const message = messages[randomVal].text;
+      const newMessage = new Message({
+        patientID: new ObjectId(patient._id),
+        phoneNumber: patient.phoneNumber,
+        date: new Date(),
+        message,
+        sender: 'BOT',
+        sent: false,
+        isCoachingMessage: true,
+      });
+      await newMessage.save();
+    }
+  });
+};
+
 export const compareOutcomesByDate = (a: IOutcome, b: IOutcome) => {
   if (a.date > b.date) {
     return 1;

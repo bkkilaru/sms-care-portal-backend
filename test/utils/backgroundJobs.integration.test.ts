@@ -12,6 +12,7 @@ import { Patient } from '../../src/models/patient.model';
 import { Message } from '../../src/models/message.model';
 import {
   dailyMidnightMessages,
+  nudgeMessages,
   weeklyReport,
   getDateRelativeToMonday,
 } from '../../src/background_jobs/utils';
@@ -51,6 +52,15 @@ if (process.env.NODE_ENV === 'development') {
         scheduled: true,
         timezone: 'America/Los_Angeles',
       });
+
+      expect(cron.schedule).toBeCalledWith(
+        '0 13 * * 2,4,6',
+        expect.any(Function),
+        {
+          scheduled: true,
+          timezone: 'America/Los_Angeles',
+        },
+      );
       done();
     });
 
@@ -58,6 +68,16 @@ if (process.env.NODE_ENV === 'development') {
       await createPatient('111');
       await createMessageTemplate();
       dailyMidnightMessages();
+      await waitJest(400);
+      const messages = await Message.find({ phoneNumber: '111' });
+      expect(messages[0]?.sent).toBeFalsy();
+      done();
+    });
+
+    it('sends nudge messages', async (done) => {
+      await createPatient('111');
+      await createMessageTemplate();
+      nudgeMessages();
       await waitJest(400);
       const messages = await Message.find({ phoneNumber: '111' });
       expect(messages[0]?.sent).toBeFalsy();
