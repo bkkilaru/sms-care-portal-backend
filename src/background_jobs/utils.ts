@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { ObjectId } from 'mongodb';
+import { sample, groupBy } from 'lodash';
 import { Message } from '../models/message.model';
 import { MessageTemplate } from '../models/messageTemplate.model';
 import { IPatient, Patient } from '../models/patient.model';
@@ -15,63 +16,65 @@ export const dailyMidnightMessages = async () => {
   const patients = await Patient.find();
   const MessageTemplates = await MessageTemplate.find({ type: 'Initial' });
   patients.forEach(async (patient) => {
-    if (patient.enabled) {
-      const messages = MessageTemplates.filter(
-        (template) =>
-          template.language.toLowerCase() === patient.language.toLowerCase(),
-      );
-      if (messages.length < 1) {
-        console.log(
-          'Unable to find message appropriate for member = ',
-          patient._id,
-        );
-        return;
-      }
-      const randomVal = Math.floor(Math.random() * messages.length);
-      const message = messages[randomVal].text;
-      const newMessage = new Message({
-        patientID: new ObjectId(patient._id),
-        phoneNumber: patient.phoneNumber,
-        date: new Date(),
-        message,
-        sender: 'BOT',
-        sent: false,
-      });
-      await newMessage.save();
+    if (!patient.enabled) {
+      return;
     }
+
+    const MESSAGES_BY_LANGUAGE = groupBy(MessageTemplates, 'language');
+    const possibleMessages = MESSAGES_BY_LANGUAGE[patient.language];
+    const message = sample(possibleMessages)?.text;
+
+    if (possibleMessages.length < 1) {
+      console.log(
+        'Unable to find message appropriate for member = ',
+        patient._id,
+      );
+      return;
+    }
+
+    const newMessage = new Message({
+      patientID: new ObjectId(patient._id),
+      phoneNumber: patient.phoneNumber,
+      date: new Date(),
+      message,
+      sender: 'BOT',
+      sent: false,
+    });
+    await newMessage.save();
   });
 };
 
 export const nudgeMessages = async () => {
   console.log('Running nudge messages');
   const patients = await Patient.find();
-  const MessageTemplates = await MessageTemplate.find({ type: 'Nudge' });
+  const NUDGES = await MessageTemplate.find({ type: 'Nudge' });
   patients.forEach(async (patient) => {
-    if (patient.enabled) {
-      const messages = MessageTemplates.filter(
-        (template) =>
-          template.language.toLowerCase() === patient.language.toLowerCase(),
-      );
-      if (messages.length < 1) {
-        console.log(
-          'Unable to find message appropriate for member = ',
-          patient._id,
-        );
-        return;
-      }
-      const randomVal = Math.floor(Math.random() * messages.length);
-      const message = messages[randomVal].text;
-      const newMessage = new Message({
-        patientID: new ObjectId(patient._id),
-        phoneNumber: patient.phoneNumber,
-        date: new Date(),
-        message,
-        sender: 'BOT',
-        sent: false,
-        isCoachingMessage: true,
-      });
-      await newMessage.save();
+    if (!patient.enabled) {
+      return;
     }
+
+    const NUDGES_BY_LANGUAGE = groupBy(NUDGES, 'language');
+    const possibleMessages = NUDGES_BY_LANGUAGE[patient.language];
+    const message = sample(possibleMessages)?.text;
+
+    if (possibleMessages.length < 1) {
+      console.log(
+        'Unable to find message appropriate for member = ',
+        patient._id,
+      );
+      return;
+    }
+
+    const newMessage = new Message({
+      patientID: new ObjectId(patient._id),
+      phoneNumber: patient.phoneNumber,
+      date: new Date(),
+      message,
+      sender: 'BOT',
+      sent: false,
+      isCoachingMessage: true,
+    });
+    await newMessage.save();
   });
 };
 
