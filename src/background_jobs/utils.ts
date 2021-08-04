@@ -24,7 +24,7 @@ export const dailyMidnightMessages = async () => {
     const possibleMessages = MESSAGES_BY_LANGUAGE[patient.language];
     const message = sample(possibleMessages)?.text;
 
-    if (possibleMessages.length < 1) {
+    if (possibleMessages.length === 0) {
       console.log(
         'Unable to find message appropriate for member = ',
         patient._id,
@@ -57,7 +57,7 @@ export const nudgeMessages = async () => {
     const possibleMessages = NUDGES_BY_LANGUAGE[patient.language];
     const message = sample(possibleMessages)?.text;
 
-    if (possibleMessages.length < 1) {
+    if (possibleMessages.length === 0) {
       console.log(
         'Unable to find message appropriate for member = ',
         patient._id,
