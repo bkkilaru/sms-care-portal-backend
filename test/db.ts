@@ -11,6 +11,7 @@ import { IPatient, Patient } from '../src/models/patient.model';
 import { Message } from '../src/models/message.model';
 import { Outcome } from '../src/models/outcome.model';
 import { MessageTemplate } from '../src/models/messageTemplate.model';
+import { Appointment } from '../src/models/appointment.model';
 
 const authApp = express();
 
@@ -146,4 +147,30 @@ export const createMessageTemplate = async () => {
     type: 'Initial',
   });
   await newMessageTemplate.save();
+};
+
+export const createAppointment = async ({
+  patientID,
+  appointmentCoachID,
+  scheduledByCoachID,
+  cancelledOn,
+  deletedOn,
+  scheduledFor,
+}: {
+  patientID: string;
+  appointmentCoachID?: string;
+  scheduledByCoachID?: string;
+  cancelledOn?: Date;
+  deletedOn?: Date;
+  scheduledFor: Date;
+}) => {
+  const newAppointment = new Appointment({
+    patientID,
+    appointmentCoachID: appointmentCoachID || new ObjectId(1),
+    scheduledByCoachID: scheduledByCoachID || new ObjectId(2),
+    cancelledOn,
+    deletedOn,
+    scheduledFor,
+  });
+  await newAppointment.save();
 };

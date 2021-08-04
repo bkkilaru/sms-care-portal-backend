@@ -6,6 +6,7 @@ import {
   clearDatabase,
   getTestToken,
   createPatient,
+  createAppointment,
 } from '../../test/db';
 import { Patient } from '../models/patient.model';
 import { Message } from '../models/message.model';
@@ -68,6 +69,56 @@ if (process.env.NODE_ENV === 'development') {
       expect(messages.length).toBe(1);
       expect(messages[0]?.sender).toBe('COACH');
       expect(messages[0]?.isCoachingMessage).toBe(true);
+    });
+    it('/:patientID/appointments route gets returns relevant appointments in order', async () => {
+      const todayMinus25Hours = new Date();
+      todayMinus25Hours.setDate(todayMinus25Hours.getHours() - 25);
+      const patientID = '60ac2ce001d7157738425701';
+      await createAppointment({
+        scheduledFor: todayMinus25Hours,
+        patientID,
+      });
+      await createAppointment({
+        scheduledFor: new Date('2021-08-02T17:19:26.021Z'),
+        patientID: '60ac2ce001d7157738425799',
+      });
+      await createAppointment({
+        scheduledFor: new Date(),
+        patientID,
+      });
+      await createAppointment({
+        scheduledFor: new Date('2121-08-04T07:19:26.021Z'),
+        patientID,
+      });
+      await createAppointment({
+        scheduledFor: new Date('2121-08-01T01:19:26.021Z'),
+        patientID,
+      });
+
+      const res = await request(patientApp)
+        .get(`/${patientID}/appointments`)
+        .set('Authorization', `Bearer ${tokenObject.token[0]}`);
+      expect(res.status).toBe(200);
+      let isInOrder = true;
+      let lastAppointmentDate = new Date(0);
+      expect(res.body.length).toBe(3);
+      res?.body.forEach((appointment: any) => {
+        if (new Date(appointment.scheduledFor) < lastAppointmentDate) {
+          isInOrder = false;
+        }
+        if (!lastAppointmentDate) {
+          lastAppointmentDate = appointment.scheduledFor;
+        }
+      });
+      expect(isInOrder).toBeTruthy();
+    });
+    it('/:patientID/appointments route handles invalid patientID', async () => {
+      const patientID = '2ff';
+
+      const res = await request(patientApp)
+        .get(`/${patientID}/appointments`)
+        .set('Authorization', `Bearer ${tokenObject.token[0]}`);
+      expect(res.status).toBe(400);
     });
   });
 } else {

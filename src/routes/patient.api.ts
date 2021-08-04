@@ -4,6 +4,7 @@ import { Patient, PatientForPhoneNumber } from '../models/patient.model';
 import auth from '../middleware/auth';
 import errorHandler from './error';
 import { Message } from '../models/message.model';
+import { Appointment } from '../models/appointment.model';
 
 const { ObjectId } = require('mongoose').Types;
 
@@ -185,6 +186,27 @@ router.post('/status', auth, (req, res) => {
       return res.status(200).json('Patiet Status Changed!');
     })
     .catch((err) => errorHandler(res, err.message));
+});
+
+router.get('/:patientID/appointments', auth, async (req, res) => {
+  const id = req.params.patientID;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  try {
+    const appointments = await Appointment.find({
+      patientID: new ObjectId(id),
+      scheduledFor: {
+        $gte: yesterday,
+      },
+    }).sort({
+      scheduledFor: 1,
+    });
+    return res.status(200).json(appointments);
+  } catch (error) {
+    return errorHandler(res, (error as Error).message);
+  }
 });
 
 export default router;
