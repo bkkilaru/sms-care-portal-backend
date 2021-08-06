@@ -12,7 +12,7 @@ interface IweekRecords {
 }
 
 export const dailyMidnightMessages = async () => {
-  console.log('Running batch of scheduled messages');
+  console.log('Running batch of midnight messages');
   const patients = await Patient.find();
   const MessageTemplates = await MessageTemplate.find({ type: 'Initial' });
   patients.forEach(async (patient) => {
@@ -24,9 +24,9 @@ export const dailyMidnightMessages = async () => {
     const possibleMessages = MESSAGES_BY_LANGUAGE[patient.language];
     const message = sample(possibleMessages)?.text;
 
-    if (possibleMessages.length === 0) {
+    if (!message) {
       console.log(
-        'Unable to find message appropriate for member = ',
+        'Unable to find midnight message appropriate for member = ',
         patient._id,
       );
       return;
@@ -40,12 +40,17 @@ export const dailyMidnightMessages = async () => {
       sender: 'BOT',
       sent: false,
     });
-    await newMessage.save();
+
+    try {
+      await newMessage.save();
+    } catch (err) {
+      console.log(err);
+    }
   });
 };
 
 export const nudgeMessages = async () => {
-  console.log('Running nudge messages');
+  console.log('Running batch of nudge messages');
   const patients = await Patient.find();
   const NUDGES = await MessageTemplate.find({ type: 'Nudge' });
   patients.forEach(async (patient) => {
@@ -57,9 +62,9 @@ export const nudgeMessages = async () => {
     const possibleMessages = NUDGES_BY_LANGUAGE[patient.language];
     const message = sample(possibleMessages)?.text;
 
-    if (possibleMessages.length === 0) {
+    if (!message) {
       console.log(
-        'Unable to find message appropriate for member = ',
+        'Unable to find nudge message appropriate for member = ',
         patient._id,
       );
       return;
@@ -74,7 +79,12 @@ export const nudgeMessages = async () => {
       sent: false,
       isCoachingMessage: true,
     });
-    await newMessage.save();
+
+    try {
+      await newMessage.save();
+    } catch (error) {
+      console.log(error);
+    }
   });
 };
 
